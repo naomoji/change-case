@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>句子首字母大写转换器</title>
+    <style>
+        body {
+            margin: 20px;
+        }
+
+        textarea,
+        button {
+            display: block;
+            margin-top: 10px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            margin-bottom: 10px;
+            font-family: 'Microsoft YaHei UI', 'Arial', sans-serif; /* 指定字体 */
+            font-size: 16px; /* 设置字体大小 */
+            line-height: 1.5; /* 设置行高 */
+
+        }
+
+        #result {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+
+        #message{
+            display: none; /* 默认隐藏 */
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: #4caf50;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+    <h1>英文句子首字母大写转换器</h1>
+    <textarea id="inputText" placeholder="请输入文本"></textarea>
+    <button id="convertButton">转换</button>
+    <button id="copyButton1">复制结果</button>
+    <div id="result">转换结果</div>
+    <button id="copyButton2">复制结果</button>
+    <div id="message">复制成功</div> <!-- 消息弹窗 -->
+
+    <script>
+        document.getElementById("convertButton").addEventListener("click", function () {
+            var inputText = document.getElementById("inputText").value;
+            var convertedText = formatText(inputText);
+            document.getElementById("result").innerText = convertedText;
+        });
+
+        // 配置需要特定处理规则的词语
+        const specialCases = {
+            // 全大写
+            preserveCase: ["BBQ", "NASA", "FBI"],
+            // 首字母始终大写
+            capitalizeAlways: ["I", "I'm", "I've", "I'd", "I'll"],
+            // 专有名词
+            properNouns:
+                [
+                    // 星期、月份
+                    "Monday", "Tuesday", "Wednesday", "Thursday", "Friday",
+                    "Saturday", "Sunday",
+                    "January", "February", "March", "April", "May", "June",
+                    "July", "August", "September", "October", "November", "December",
+                    // 人名
+                    "John", "Mary", "Grace", "Ambrosius", "Emily","Kevin","Toby","Cory","Josh",
+                    // 地名
+                    "New York"
+                ]
+        };
+
+        function formatText(text) {
+            // 将所有文本先转化为小写
+            text = text.toLowerCase();
+
+            // 将每个句子的首字母转换为大写
+            // 判断句子开头的方法是定位文本的开头、特定标点符号之后、换行之后
+            text = text.replace(/(^\s*\w|[.!?;:]\s*\w|\n\s*\w|\r\n\s*\w)/g, function (c) {
+                return c.toUpperCase();
+            });
+
+            // 特殊情况处理
+            // 处理 preserveCase 列表中的词语
+            specialCases.preserveCase.forEach(word => {
+                const regex = new RegExp(`\\b${word.toLowerCase()}\\b`, 'g');
+                text = text.replace(regex, word);
+            });
+
+            // 处理 capitalizeAlways 列表中的词语
+            specialCases.capitalizeAlways.forEach(word => {
+                const regex = new RegExp(`\\b${word.toLowerCase()}\\b`, 'g');
+                text = text.replace(regex, word);
+            })
+
+            // 处理 properNouns 列表中的专有名词
+            specialCases.properNouns.forEach(word => {
+                const regex = new RegExp(`\\b${word.toLowerCase()}\\b`, 'g');
+                text = text.replace(regex, word);
+            });
+
+            return text;
+        }
+
+        // 获取复制按钮和结果显示的 div
+        const copyButton1 = document.getElementById('copyButton1');
+        const copyButton2 = document.getElementById('copyButton2');
+        const resultDiv = document.getElementById('result');
+
+        // 添加点击事件监听
+        copyButton1.addEventListener('click', copyResult);
+        copyButton2.addEventListener('click', copyResult);
+        
+        function copyResult() {
+            // 创建一个新的 textarea 元素，用于复制文本到剪贴板
+            const textarea = document.createElement('textarea');
+            textarea.value = resultDiv.innerText; // 设置 textarea 的值为结果 div 的文本内容
+            document.body.appendChild(textarea); // 将 textarea 添加到文档中
+            textarea.select(); // 选择 textarea 中的文本
+            document.execCommand('copy'); // 执行复制命令
+            document.body.removeChild(textarea); // 移除 textarea 元素
+
+            // 提示复制成功
+            showMessage('复制成功！！！')
+        };
+
+        function showMessage(message) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = message;
+            messageDiv.style.display = 'block';
+            setTimeout(function() {
+                messageDiv.style.display = 'none';
+            }, 2500); // 2.5秒后隐藏
+        }
+
+        
+
+    </script>
+</body>
+
+</html>
