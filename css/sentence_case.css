@@ -1,0 +1,75 @@
+body {
+    margin: 0;
+    padding: 0;
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    margin: 0 20px; 
+}
+
+#inputText {
+    width: 100%;
+    height: 150px;
+    box-sizing: border-box;
+    padding: 8px;
+    font-family: 'Microsoft YaHei UI', 'Arial', sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    outline: none;
+    letter-spacing: 1px;
+}
+
+#result {
+    border: 1px solid #ccc;
+    width: 100%;
+    height: 150px;
+    box-sizing: border-box;
+    padding: 8px;
+    margin-bottom: 80px;
+    line-height: 1.5;
+    letter-spacing: 1px;
+
+}
+
+#message {
+    display: none;
+    /* 默认隐藏 */
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background-color: #4caf50;
+    color: white;
+    padding: 15px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    letter-spacing: 2px;
+}
+
+button {
+    background-color: #333;
+    color: white;
+    border: none;
+    box-sizing: border-box;
+    padding: 10px 20px;
+    letter-spacing: 2px;
+    cursor: pointer;
+}
+
+/* 鼠标悬停时的样式 */
+button:hover {
+    background-color: #555;
+}
+
+button.qian{
+    margin:12px 20px 12px 0;
+}
+
+#toTop {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 1000;
+    display: none;
+}
