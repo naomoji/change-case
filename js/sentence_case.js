@@ -29,10 +29,10 @@ const specialCases = {
             // 人名
             "John", "Mary", "Grace", "Ambrosius", "Emily",
             "Kevin", "Toby", "Cory", "Josh", "Chrissy",
-            "Jack", "Steven","Danya","Van","Vanessa",
-            "Ambrosius Vallin","Kevin Archer",
+            "Jack", "Steven", "Danya", "Van", "Vanessa",
+            "Ambrosius Vallin", "Kevin Archer",
             // 地名
-            "New York","Dante's Cove","Dante's","Hotel Dante",
+            "New York", "Dante's Cove", "Dante's", "Hotel Dante",
             // 其他
             "Voodoo Cults"
         ]
@@ -42,37 +42,38 @@ const specialCases = {
 function formatText(text) {
     // 1. 句子中所有字母都转为小写
     text = text.toLowerCase();
-    
+
     // 2. 句子首字母再转为大写
     // 定位到 句子开头、标点符号之后、换行之前
     text = text.replace(/(^\s*\w|[.!?;:]\s*\w|\n\s*\w|\r\n\s*\w)/g, c => c.toUpperCase());
-    
+
     // 3. 将特殊词汇存到 map中，方便后续替换
     const replacements = new Map();
-    
+
     // 将特殊词汇的小写形式设置为键，原本形式设置为值
     // 始终全大写的词
-    specialCases.preserveCase.forEach(word => 
+    specialCases.preserveCase.forEach(word =>
         replacements.set(word.toLowerCase(), word));
 
     // 首字母始终大写
-    specialCases.capitalizeAlways.forEach(word => 
+    specialCases.capitalizeAlways.forEach(word =>
         replacements.set(word.toLowerCase(), word));
 
     //一个单词组成的专有名词
     const singleWords = specialCases.properNouns
         .filter(phrase => !phrase.includes(' '));
 
-    singleWords.forEach(word => 
+    singleWords.forEach(word =>
         replacements.set(word.toLowerCase(), word));
-    
+
     //正则表达 (i|nasa|bbq|monday|new york)
     const wordRegex = new RegExp(
-        `\\b(${[...replacements.keys()].join('|')})\\b`,'gi'
+        `\\b(${[...replacements.keys()].join('|')})\\b`, 'gi'
     );
-    
+
     // 替换特殊词汇
     text = text.replace(wordRegex, (match) => {
+        // console.log("-->" + match)
         const lowerMatch = match.toLowerCase();
         return replacements.has(lowerMatch) ? replacements.get(lowerMatch) : match;
     });
@@ -81,15 +82,16 @@ function formatText(text) {
     const multiWordPhrases = specialCases.properNouns
         .filter(phrase => phrase.includes(' '))
         .sort((a, b) => b.length - a.length); // 长的优先
-    
+
     multiWordPhrases.forEach(phrase => {
         const lowerPhrase = phrase.toLowerCase();
-        // 使用非单词边界断言确保完整匹配
-        // (?=\\s|$) 正向先行断言，后面必须是空格或结尾
-        const regex = new RegExp(`(^|\\s)${lowerPhrase.replace(/\s+/g, '\\s+')}(?=\\s|$)`, 'gi');
+        // 使用断言确保完整匹配
+        // (?=[\\s\\.,'?!;:]|$) 正向先行断言，后面必须是空格或某些标点符号
+        const regex = new RegExp(`(^|\\s)${lowerPhrase.replace(/\s+/g, '\\s+')}(?=[\\s\\.,'?!;:s]|$)`, 'gi');
+
         text = text.replace(regex, (match, p1) => p1 + phrase);
     });
-    
+
     return text;
 }
 
@@ -99,7 +101,7 @@ const topButton = document.getElementById('toTop');
 const clearButton = document.getElementById("clearButton");
 
 // 复制结果
-copyButton.addEventListener('click', function() {
+copyButton.addEventListener('click', function () {
     if (resultDiv.innerText.length > 0) {
         navigator.clipboard.writeText(resultDiv.innerText)
             .then(function () {
@@ -132,7 +134,7 @@ clearButton.addEventListener("click", function () {
 });
 
 // 平滑滚动到顶部
-topButton.addEventListener('click', function() {
+topButton.addEventListener('click', function () {
     window.scrollTo({
         top: 0,
         behavior: 'smooth'
