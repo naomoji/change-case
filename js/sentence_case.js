@@ -12,7 +12,7 @@ document.getElementById("convertButton").addEventListener("click", function () {
     }
 });
 
-// 配置需要特定处理规则的词语
+// 配置需要特定处理规则的词汇
 const specialCases = {
     // 始终全大写
     preserveCase: ["BBQ", "NASA", "FBI"],
@@ -27,41 +27,52 @@ const specialCases = {
             "January", "February", "March", "April", "May", "June",
             "July", "August", "September", "October", "November", "December",
             // 人名
-            "John", "Mary", "Grace", "Ambrosius", "Emily", "Kevin", "Toby", "Cory", "Josh", "Chrissy",
-            "Jack", "Steven",
+            "John", "Mary", "Grace", "Ambrosius", "Emily",
+            "Kevin", "Toby", "Cory", "Josh", "Chrissy",
+            "Jack", "Steven", "Danya",
+            "Ambrosius Vallin", "Kevin Archer",
             // 地名
-            "New York"
+            "New York", "Dante's Cove", "Dante's", "Hotel Dante",
+            // 其他
+            "Voodoo Cults"
         ]
 };
 
 // 句子首字母转为大写
 function formatText(text) {
-    // 将所有文本先转化为小写
+    // 1. 句子中所有字母都转为小写
     text = text.toLowerCase();
 
-    // 将每个句子的首字母转换为大写
-    // 判断句子开头的方法是定位文本的开头、特定标点符号之后、换行之后
-    text = text.replace(/(^\s*\w|[.!?;:]\s*\w|\n\s*\w|\r\n\s*\w)/g, function (c) {
-        return c.toUpperCase();
-    });
+    // 2. 句子首字母再转为大写
+    // 定位到 句子开头、标点符号之后、换行之前
+    text = text.replace(/(^\s*\w|[.!?;:]\s*\w|\n\s*\w|\r\n\s*\w)/g, c => c.toUpperCase());
 
-    // 特殊情况处理
-    // 处理 preserveCase 列表中的词语
-    specialCases.preserveCase.forEach(word => {
-        const regex = new RegExp(`\\b${word.toLowerCase()}\\b`, 'g');
-        text = text.replace(regex, word);
-    });
+    // 3. 将特殊词汇存到 map中，方便后续替换
+    // 将特殊词汇的小写形式设置为键，原本形式设置为值
+    const replacements = new Map();
 
-    // 处理 capitalizeAlways 列表中的词语
-    specialCases.capitalizeAlways.forEach(word => {
-        const regex = new RegExp(`\\b${word.toLowerCase()}\\b`, 'g');
-        text = text.replace(regex, word);
-    })
+    // 始终全大写的词
+    specialCases.preserveCase.forEach(word =>
+        replacements.set(word.toLowerCase(), word));
 
-    // 处理 properNouns 列表中的的词语
-    specialCases.properNouns.forEach(word => {
-        const regex = new RegExp(`\\b${word.toLowerCase()}\\b`, 'g');
-        text = text.replace(regex, word);
+    // 首字母始终大写
+    specialCases.capitalizeAlways.forEach(word =>
+        replacements.set(word.toLowerCase(), word));
+
+    //专有名词
+    specialCases.properNouns.forEach(word =>
+        replacements.set(word.toLowerCase(), word));
+
+
+    //正则表达 (i|nasa|bbq|monday|new york)
+    const wordRegex = new RegExp(
+        `\\b(${[...replacements.keys()].join('|')})\\b`, 'gi'
+    );
+
+    // 替换特殊词汇
+    text = text.replace(wordRegex, (match) => {
+        const lowerMatch = match.toLowerCase();
+        return replacements.has(lowerMatch) ? replacements.get(lowerMatch) : match;
     });
 
     return text;
@@ -73,23 +84,10 @@ const topButton = document.getElementById('toTop');
 const clearButton = document.getElementById("clearButton");
 
 // 复制结果
-copyButton.addEventListener('click', function() {
+copyButton.addEventListener('click', function () {
     if (resultDiv.innerText.length > 0) {
         navigator.clipboard.writeText(resultDiv.innerText)
             .then(function () {
-                // 提示复制成功
-                showMessage('复制成功');
-            }, function (err) {
-                // console.error('复制失败:', err);
-                // 失败用法二
-                // 创建一个新的 textarea 元素，用于复制文本到剪贴板
-                const textarea = document.createElement('textarea');
-                textarea.value = resultDiv.innerText; // 设置 textarea 的值为结果 div 的文本内容
-                document.body.appendChild(textarea); // 将 textarea 添加到文档中
-                textarea.select(); // 选择 textarea 中的文本
-                // textarea.setSelectionRange(0, textarea.value.length); // 选择 textarea 中，第 0~length 的文本
-                document.execCommand('copy'); // 执行复制命令
-                document.body.removeChild(textarea); // 移除 textarea 元素
                 // 提示复制成功
                 showMessage('复制成功');
             });
@@ -106,7 +104,7 @@ clearButton.addEventListener("click", function () {
 });
 
 // 平滑滚动到顶部
-topButton.addEventListener('click', function() {
+topButton.addEventListener('click', function () {
     window.scrollTo({
         top: 0,
         behavior: 'smooth'
@@ -133,7 +131,7 @@ function showMessage(message) {
     messageDiv.style.display = 'block';
     setTimeout(function () {
         messageDiv.style.display = 'none';
-    }, 2500); // 2.5秒后隐藏
+    }, 3000); // 3秒后隐藏
 }
 
 // 更新结果div的高度
