@@ -29,7 +29,7 @@ const specialCases = {
             // 人名
             "John", "Mary", "Grace", "Ambrosius", "Emily",
             "Kevin", "Toby", "Cory", "Josh", "Chrissy",
-            "Jack", "Steven","Danya",
+            "Jack", "Steven","Danya","Van","Vanessa",
             "Ambrosius Vallin","Kevin Archer",
             // 地名
             "New York","Dante's Cove","Dante's","Hotel Dante",
