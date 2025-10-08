@@ -29,10 +29,10 @@ const specialCases = {
             // 人名
             "John", "Mary", "Grace", "Ambrosius", "Emily",
             "Kevin", "Toby", "Cory", "Josh", "Chrissy",
-            "Jack", "Steven", "Danya",
-            "Ambrosius Vallin", "Kevin Archer",
+            "Jack", "Steven","Danya",
+            "Ambrosius Vallin","Kevin Archer",
             // 地名
-            "New York", "Dante's Cove", "Dante's", "Hotel Dante",
+            "New York","Dante's Cove","Dante's","Hotel Dante",
             // 其他
             "Voodoo Cults"
         ]
@@ -42,39 +42,54 @@ const specialCases = {
 function formatText(text) {
     // 1. 句子中所有字母都转为小写
     text = text.toLowerCase();
-
+    
     // 2. 句子首字母再转为大写
     // 定位到 句子开头、标点符号之后、换行之前
     text = text.replace(/(^\s*\w|[.!?;:]\s*\w|\n\s*\w|\r\n\s*\w)/g, c => c.toUpperCase());
-
+    
     // 3. 将特殊词汇存到 map中，方便后续替换
-    // 将特殊词汇的小写形式设置为键，原本形式设置为值
     const replacements = new Map();
-
+    
+    // 将特殊词汇的小写形式设置为键，原本形式设置为值
     // 始终全大写的词
-    specialCases.preserveCase.forEach(word =>
+    specialCases.preserveCase.forEach(word => 
         replacements.set(word.toLowerCase(), word));
 
     // 首字母始终大写
-    specialCases.capitalizeAlways.forEach(word =>
+    specialCases.capitalizeAlways.forEach(word => 
         replacements.set(word.toLowerCase(), word));
 
-    //专有名词
-    specialCases.properNouns.forEach(word =>
+    //一个单词组成的专有名词
+    const singleWords = specialCases.properNouns
+        .filter(phrase => !phrase.includes(' '));
+
+    singleWords.forEach(word => 
         replacements.set(word.toLowerCase(), word));
-
-
+    
     //正则表达 (i|nasa|bbq|monday|new york)
     const wordRegex = new RegExp(
-        `\\b(${[...replacements.keys()].join('|')})\\b`, 'gi'
+        `\\b(${[...replacements.keys()].join('|')})\\b`,'gi'
     );
-
+    
     // 替换特殊词汇
     text = text.replace(wordRegex, (match) => {
         const lowerMatch = match.toLowerCase();
         return replacements.has(lowerMatch) ? replacements.get(lowerMatch) : match;
     });
 
+    // 单独处理由多个单词组成的专有名词
+    const multiWordPhrases = specialCases.properNouns
+        .filter(phrase => phrase.includes(' '))
+        .sort((a, b) => b.length - a.length); // 长的优先
+    
+    multiWordPhrases.forEach(phrase => {
+        const lowerPhrase = phrase.toLowerCase();
+        // 使用非单词边界断言确保完整匹配
+        // (?=\\s|$) 正向先行断言，后面必须是空格或结尾
+        const regex = new RegExp(`(^|\\s)${lowerPhrase.replace(/\s+/g, '\\s+')}(?=\\s|$)`, 'gi');
+        text = text.replace(regex, (match, p1) => p1 + phrase);
+    });
+    
     return text;
 }
 
@@ -84,10 +99,23 @@ const topButton = document.getElementById('toTop');
 const clearButton = document.getElementById("clearButton");
 
 // 复制结果
-copyButton.addEventListener('click', function () {
+copyButton.addEventListener('click', function() {
     if (resultDiv.innerText.length > 0) {
         navigator.clipboard.writeText(resultDiv.innerText)
             .then(function () {
+                // 提示复制成功
+                showMessage('复制成功');
+            }, function (err) {
+                // console.error('复制失败:', err);
+                // 失败用法二
+                // 创建一个新的 textarea 元素，用于复制文本到剪贴板
+                const textarea = document.createElement('textarea');
+                textarea.value = resultDiv.innerText; // 设置 textarea 的值为结果 div 的文本内容
+                document.body.appendChild(textarea); // 将 textarea 添加到文档中
+                textarea.select(); // 选择 textarea 中的文本
+                // textarea.setSelectionRange(0, textarea.value.length); // 选择 textarea 中，第 0~length 的文本
+                document.execCommand('copy'); // 执行复制命令
+                document.body.removeChild(textarea); // 移除 textarea 元素
                 // 提示复制成功
                 showMessage('复制成功');
             });
@@ -104,7 +132,7 @@ clearButton.addEventListener("click", function () {
 });
 
 // 平滑滚动到顶部
-topButton.addEventListener('click', function () {
+topButton.addEventListener('click', function() {
     window.scrollTo({
         top: 0,
         behavior: 'smooth'
@@ -131,7 +159,7 @@ function showMessage(message) {
     messageDiv.style.display = 'block';
     setTimeout(function () {
         messageDiv.style.display = 'none';
-    }, 3000); // 3秒后隐藏
+    }, 2500); // 2.5秒后隐藏
 }
 
 // 更新结果div的高度
