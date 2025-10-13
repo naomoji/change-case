@@ -35,7 +35,6 @@ const specialCases = {
             "Ambrosius Vallin", "Kevin Archer","Kev",
             // 地名
             "New York", "Dante's Cove", "Dante's", "Hotel Dante",
-            "New York City",
             // 其他
             "Voodoo Cults"
         ]
