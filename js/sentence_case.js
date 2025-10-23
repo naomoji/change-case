@@ -31,15 +31,18 @@ const specialCases = {
             // 人名
             "John", "Mary", "Grace", "Ambrosius", "Emily",
             "Kevin", "Toby", "Cory", "Josh", "Chrissy",
-            "Jack", "Steven", "Danya", "Van", "Vanessa","Amber",
-            "Ambrosius Vallin", "Kevin Archer","Kev",
+            "Jack", "Steven", "Danya", "Van", "Vanessa", "Amber",
+            "Ambrosius Vallin", "Kevin Archer", "Kev", "Adam",
             // 地名
             "New York", "Dante's Cove", "Dante's", "Hotel Dante",
+            // 缩写
+            "Dr", "Mr", "Mrs", "Ms", "Prof", "Ave", "St", "Rd",
+            "a.m.", "p.m.", "etc.", "e.g.",    // 这行不生效
             // 其他
             "Voodoo Cults"
+
         ]
 };
-
 
 const sentenceCapitalizeRegex = /(^\s*\w|[.!?;:\]\}]\s*\w|\n\s*\w|\r\n\s*\w)/g;
 // 匹配需要大写的首字母位置：
@@ -50,15 +53,15 @@ const sentenceCapitalizeRegex = /(^\s*\w|[.!?;:\]\}]\s*\w|\n\s*\w|\r\n\s*\w)/g;
 // 将特殊词汇放到 map中，方便后续转换，多词短语另外处理
 const buildReplacements = () => {
     const replacements = new Map();
-    
-    [   ...specialCases.preserveCase,       // 始终全大写的词 (NASA等)
-        ...specialCases.capitalizeAlways,   // 首字母始终大写的词 (I, I'm等)
-        ...specialCases.properNouns.filter(phrase => !phrase.includes(' ')) // 单字专有名词
+
+    [...specialCases.preserveCase,       // 始终全大写的词 
+    ...specialCases.capitalizeAlways,   // 首字母始终大写的词 
+    ...specialCases.properNouns.filter(phrase => !phrase.includes(' ')) // 单字专有名词
     ].forEach(word => {
         // 特殊单词的小写形式作为键，原始形式作为值
         replacements.set(word.toLowerCase(), word);
     });
-    
+
     return replacements;
 };
 
@@ -66,29 +69,36 @@ const replacements = buildReplacements();
 
 // 对正则表达式中的特殊字符进行转义，如 node.js变成 node\.js
 const escapedKeys = [...replacements.keys()]
-    .map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')); 
-    
+    .map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+
 // \b 整词匹配，避免部分匹配 (如 "nasa"不会匹配 "NASAlab"或"NA")
 // 表达式像这样 (nasa|i|kevin|monday)
 // g：取所有匹配项，没有 g只去匹配到的第一项； i：匹配时忽略大小写
-const wordRegex = new RegExp(`\\b(${escapedKeys.join('|')})\\b`, 'gi'); 
+const wordRegex = new RegExp(`\\b(${escapedKeys.join('|')})\\b`, 'gi');
 
 // 将特殊多词短语和对应的正则表达式放到 map，方便后续转换
-const multiWordRegexMap = new Map();
-specialCases.properNouns
-    .filter(phrase => phrase.includes(' ')) // 只处理多词短语
-    .forEach(phrase => {
-        // 转义
-        const escapedPhrase = phrase.toLowerCase()
-            .replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // 转义正则特殊字符
-            .replace(/\s+/g, '\\s+');               // 处理任意数量的空格
-        
-        // 多词短语的原本形式作为键，正则表达式作为值
-        multiWordRegexMap.set(
-            phrase,
-            new RegExp(`\\b${escapedPhrase}\\b`, 'gi') 
-        );
-    });
+const buildMultiWordRegexMap = () => {
+    const map = new Map();
+    
+    specialCases.properNouns
+        .filter(phrase => phrase.includes(' ')) // 只处理多词短语
+        .forEach(phrase => {
+            // 转义特殊字符并处理空格
+            const escapedPhrase = phrase.toLowerCase()
+                .replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // 转义正则特殊字符
+                .replace(/\s+/g, '\\s+');               // 处理任意数量的空格
+
+            // 多词短语的原本形式作为键，正则表达式作为值
+            map.set(
+                phrase,
+                new RegExp(`\\b${escapedPhrase}\\b`, 'gi')
+            );
+        });
+    
+    return map;
+};
+
+const multiWordRegexMap = buildMultiWordRegexMap();
 
 // 主文本格式化函数
 function formatText(text) {
@@ -97,7 +107,7 @@ function formatText(text) {
         .replace(sentenceCapitalizeRegex, c => c.toUpperCase());
 
     // 2. 替换特殊单词
-    text = text.replace(wordRegex, match => 
+    text = text.replace(wordRegex, match =>
         // match是 text中满足 wordRegex的词
         replacements.get(match.toLowerCase())
     );
